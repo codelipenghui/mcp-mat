@@ -46,3 +46,19 @@ test("resolveIndexArtifacts reports index files", () => {
   assert.equal(status.threadsFile, threads);
   assert.ok(status.lastModified);
 });
+
+test("resolveIndexArtifacts supports MAT files based on heap stem", () => {
+  const { root, heap } = createHeapFixture();
+  const index = path.join(root, "broker-0-heap.a2s.index");
+  const domIn = path.join(root, "broker-0-heap.domIn.index");
+  const threads = path.join(root, "broker-0-heap.threads");
+  fs.writeFileSync(index, "idx");
+  fs.writeFileSync(domIn, "idx");
+  fs.writeFileSync(threads, "th");
+
+  const status = resolveIndexArtifacts(heap);
+  assert.equal(status.indexPresent, true);
+  assert.equal(status.indexFiles.length, 2);
+  assert.equal(status.threadsFile, threads);
+  assert.ok(status.lastModified);
+});
