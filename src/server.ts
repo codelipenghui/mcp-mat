@@ -24,7 +24,18 @@ import { executeTool } from "./tools/dispatcher.js";
 import { toolDefinitions } from "./tools/schemas.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "..", "package.json"), "utf8")) as { version: string };
+
+function findPackageJson(): string {
+  let dir = __dirname;
+  for (let i = 0; i < 5; i++) {
+    const candidate = path.join(dir, "package.json");
+    if (fs.existsSync(candidate)) return candidate;
+    dir = path.dirname(dir);
+  }
+  throw new Error("Could not locate package.json");
+}
+
+const pkg = JSON.parse(fs.readFileSync(findPackageJson(), "utf8")) as { version: string };
 
 async function main(): Promise<void> {
   let config;
