@@ -19,6 +19,7 @@ import {
   logRequestEnd,
   logRequestStart,
   persistDebugLog,
+  type RequestContext,
 } from "../logging.js";
 import { ensureAllowedHeapPath, ensureWriteAccessNearHeap } from "../security/pathGuard.js";
 import {
@@ -122,13 +123,7 @@ export class MatService {
         notes,
       };
     } catch (error) {
-      const response = this.normalizeError(error, "MAT_NOT_FOUND");
-      logRequestEnd(context, {
-        status: "error",
-        category: response.category,
-        elapsedMs: Date.now() - context.startedAtMs,
-      });
-      return response;
+      return this.handleToolError(context, error, "MAT_NOT_FOUND");
     }
   }
 
@@ -163,10 +158,11 @@ export class MatService {
         logDir: this.config.debugLogDir,
         context,
         run,
+        privacyMode: this.config.privacyMode,
       });
 
       if (run.exitCode !== 0) {
-        throw classifyRunFailure(run, this.config.stdioTailChars);
+        throw classifyRunFailure(run, this.config.stdioTailChars, command.timeoutSec);
       }
 
       const artifacts = resolveReportArtifacts(heapPath, context.startedAtMs);
@@ -188,14 +184,7 @@ export class MatService {
       });
       return response;
     } catch (error) {
-      const response = this.normalizeError(error, "MAT_PARSE_FAILED");
-      logRequestEnd(context, {
-        status: "error",
-        category: response.category,
-        elapsedMs: Date.now() - context.startedAtMs,
-        exitCode: response.exit_code,
-      });
-      return response;
+      return this.handleToolError(context, error, "MAT_PARSE_FAILED");
     }
   }
 
@@ -232,7 +221,7 @@ export class MatService {
           oql: normalizedOql,
           format: input.format ?? "txt",
           unzip: input.unzip ?? true,
-          limit: input.limit === undefined ? undefined : this.validateBoundedInt(input.limit, input.limit, 1, 10_000_000, "limit"),
+          limit: input.limit === undefined ? undefined : this.validateBoundedInt(input.limit, input.limit!, 1, 10_000_000, "limit"),
         },
       );
 
@@ -242,10 +231,11 @@ export class MatService {
         logDir: this.config.debugLogDir,
         context,
         run,
+        privacyMode: this.config.privacyMode,
       });
 
       if (run.exitCode !== 0) {
-        throw classifyRunFailure(run, this.config.stdioTailChars);
+        throw classifyRunFailure(run, this.config.stdioTailChars, command.timeoutSec);
       }
 
       const artifacts = resolveQueryArtifacts(heapPath, context.startedAtMs);
@@ -270,14 +260,7 @@ export class MatService {
       });
       return response;
     } catch (error) {
-      const response = this.normalizeError(error, "MAT_PARSE_FAILED");
-      logRequestEnd(context, {
-        status: "error",
-        category: response.category,
-        elapsedMs: Date.now() - context.startedAtMs,
-        exitCode: response.exit_code,
-      });
-      return response;
+      return this.handleToolError(context, error, "MAT_PARSE_FAILED");
     }
   }
 
@@ -317,7 +300,7 @@ export class MatService {
           commandArgs: input.command_args,
           format: input.format ?? "txt",
           unzip: input.unzip ?? true,
-          limit: input.limit === undefined ? undefined : this.validateBoundedInt(input.limit, input.limit, 1, 10_000_000, "limit"),
+          limit: input.limit === undefined ? undefined : this.validateBoundedInt(input.limit, input.limit!, 1, 10_000_000, "limit"),
         },
       );
 
@@ -327,10 +310,11 @@ export class MatService {
         logDir: this.config.debugLogDir,
         context,
         run,
+        privacyMode: this.config.privacyMode,
       });
 
       if (run.exitCode !== 0) {
-        throw classifyRunFailure(run, this.config.stdioTailChars);
+        throw classifyRunFailure(run, this.config.stdioTailChars, command.timeoutSec);
       }
 
       const artifacts = resolveQueryArtifacts(heapPath, context.startedAtMs);
@@ -356,14 +340,7 @@ export class MatService {
       });
       return response;
     } catch (error) {
-      const response = this.normalizeError(error, "MAT_PARSE_FAILED");
-      logRequestEnd(context, {
-        status: "error",
-        category: response.category,
-        elapsedMs: Date.now() - context.startedAtMs,
-        exitCode: response.exit_code,
-      });
-      return response;
+      return this.handleToolError(context, error, "MAT_PARSE_FAILED");
     }
   }
 
@@ -404,14 +381,7 @@ export class MatService {
       });
       return response;
     } catch (error) {
-      const response = this.normalizeError(error, "HEAP_NOT_FOUND");
-      logRequestEnd(context, {
-        status: "error",
-        category: response.category,
-        elapsedMs: Date.now() - context.startedAtMs,
-        exitCode: response.exit_code,
-      });
-      return response;
+      return this.handleToolError(context, error, "HEAP_NOT_FOUND");
     }
   }
 
@@ -491,6 +461,21 @@ export class MatService {
     } catch (error) {
       throw classifySpawnError(error);
     }
+  }
+
+  private handleToolError(
+    context: RequestContext,
+    error: unknown,
+    fallbackCategory: "MAT_NOT_FOUND" | "MAT_PARSE_FAILED" | "HEAP_NOT_FOUND",
+  ): MatErrorResponse {
+    const response = this.normalizeError(error, fallbackCategory);
+    logRequestEnd(context, {
+      status: "error",
+      category: response.category,
+      elapsedMs: Date.now() - context.startedAtMs,
+      exitCode: response.exit_code,
+    });
+    return response;
   }
 
   private normalizeError(error: unknown, fallbackCategory: "MAT_NOT_FOUND" | "MAT_PARSE_FAILED" | "HEAP_NOT_FOUND"): MatErrorResponse {

@@ -34,6 +34,7 @@ export interface RunCommand {
   command: string;
   args: string[];
   timeoutSec: number;
+  maxBufferChars?: number;
 }
 
 export interface RunResult {

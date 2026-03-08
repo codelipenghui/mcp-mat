@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import fs from "node:fs";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -19,6 +22,9 @@ import { loadConfig } from "./config.js";
 import { MatService } from "./mat/service.js";
 import { executeTool } from "./tools/dispatcher.js";
 import { toolDefinitions } from "./tools/schemas.js";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const pkg = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "..", "package.json"), "utf8")) as { version: string };
 
 async function main(): Promise<void> {
   let config;
@@ -36,7 +42,7 @@ async function main(): Promise<void> {
   const server = new Server(
     {
       name: "mcp-mat",
-      version: "0.1.0",
+      version: pkg.version,
     },
     {
       capabilities: {

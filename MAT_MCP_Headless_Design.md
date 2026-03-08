@@ -52,7 +52,7 @@ java -Xmx4g --add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \
 
 ## 4. Proposed Architecture
 
-## 4.1 Components
+### 4.1 Components
 
 1. MCP Transport Layer
 - Implemented with official MCP SDK (Python or TypeScript).
@@ -76,7 +76,7 @@ java -Xmx4g --add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \
 - Query/report argument sanitization.
 - Output size/time limits.
 
-## 4.2 Deployment shape
+### 4.2 Deployment shape
 
 - Single process MCP server.
 - Local filesystem access only.
@@ -84,7 +84,7 @@ java -Xmx4g --add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \
 
 ## 5. Tool Contracts (MCP API)
 
-## 5.1 `mat_healthcheck`
+### 5.1 `mat_healthcheck`
 
 Purpose: Validate MAT availability and runtime prerequisites.
 
@@ -98,9 +98,9 @@ Output:
 - `java_version`
 - `notes` (array)
 
-## 5.2 `mat_parse_report`
+### 5.2 `mat_parse_report`
 
-Purpose: Run a predefined MAT report (`suspects`, `overview`, `top_components`, `compare`, `suspects2`).
+Purpose: Run a predefined MAT report (`suspects`, `overview`, `top_components`, `compare`, `suspects2`, `overview2`).
 
 Input:
 - `heap_path` (required)
@@ -118,7 +118,7 @@ Output:
 - `stdout_tail`
 - `stderr_tail`
 
-## 5.3 `mat_oql_query`
+### 5.3 `mat_oql_query`
 
 Purpose: Run a single OQL query and return text results path.
 
@@ -138,10 +138,11 @@ Output:
 - `query_zip`
 - `result_txt` (primary parsed file path for `txt`)
 - `result_preview` (first N lines)
+- `generated_files` (array)
 - `stdout_tail`
 - `stderr_tail`
 
-## 5.4 `mat_index_status`
+### 5.4 `mat_index_status`
 
 Purpose: Show whether MAT index files already exist for a heap dump.
 
@@ -154,7 +155,7 @@ Output:
 - `threads_file`
 - `last_modified`
 
-## 5.5 `mat_run_command`
+### 5.5 `mat_run_command`
 
 Purpose: Execute any of the 56 built-in MAT analysis commands headlessly and return result artifacts. This is the general-purpose command runner for MAT CLI commands that are not OQL queries or predefined reports.
 
@@ -200,7 +201,7 @@ Supported commands (56 total):
 
 \* Requires a `baseline` heap dump (second `.hprof` file).
 
-## 5.6 `mat_oql_spec`
+### 5.6 `mat_oql_spec`
 
 Purpose: Return OQL parser-mode guidance, supported patterns, and known limitations. This is a static reference tool that does not execute any MAT process.
 
@@ -211,17 +212,19 @@ Output:
 
 ## 6. Command Construction
 
-## 6.1 Required environment variables
+### 6.1 Environment variables
 
+Required:
+- `MAT_ALLOWED_ROOTS` (comma-separated absolute directories where heap files are allowed)
+
+Optional (at least one of `MAT_HOME` or `MAT_LAUNCHER` must be set for MAT to work):
 - `MAT_HOME` (for example: `/Applications/MemoryAnalyzer.app/Contents/Eclipse`)
 - `MAT_LAUNCHER` (resolved `org.eclipse.equinox.launcher_*.jar`)
-
-Optional:
 - `MAT_XMX_MB` (default 4096)
 - `MAT_CONFIG_DIR` (default `/tmp/mat-config`)
 - `MAT_DATA_DIR` (default `/tmp/mat-workspace`)
 
-## 6.2 Execution template
+### 6.2 Execution template
 
 ```bash
 java -Xmx${MAT_XMX_MB}m --add-exports=java.base/jdk.internal.org.objectweb.asm=ALL-UNNAMED \

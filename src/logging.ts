@@ -80,6 +80,7 @@ export function persistDebugLog(params: {
   logDir: string;
   context: RequestContext;
   run: RunResult;
+  privacyMode?: boolean;
 }): void {
   if (!params.enabled) {
     return;
@@ -96,8 +97,8 @@ export function persistDebugLog(params: {
     exit_code: params.run.exitCode,
     signal: params.run.signal,
     timed_out: params.run.timedOut,
-    command: params.run.command,
-    args: params.run.args,
+    command: params.privacyMode ? "[redacted]" : params.run.command,
+    args: params.privacyMode ? ["[redacted]"] : params.run.args,
     stdout: params.run.stdout,
     stderr: params.run.stderr,
   };

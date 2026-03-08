@@ -22,8 +22,11 @@ export function tail(text: string, maxChars: number): string {
   return text.slice(text.length - maxChars);
 }
 
+const DEFAULT_MAX_BUFFER_CHARS = 256_000;
+
 export async function runCommand(command: RunCommand): Promise<RunResult> {
   const start = Date.now();
+  const maxChars = command.maxBufferChars ?? DEFAULT_MAX_BUFFER_CHARS;
 
   return await new Promise<RunResult>((resolve, reject) => {
     const child = spawn(command.command, command.args, {
@@ -48,9 +51,15 @@ export async function runCommand(command: RunCommand): Promise<RunResult> {
     child.stderr?.setEncoding("utf8");
     child.stdout?.on("data", (chunk: string) => {
       stdout += chunk;
+      if (stdout.length > maxChars) {
+        stdout = stdout.slice(stdout.length - maxChars);
+      }
     });
     child.stderr?.on("data", (chunk: string) => {
       stderr += chunk;
+      if (stderr.length > maxChars) {
+        stderr = stderr.slice(stderr.length - maxChars);
+      }
     });
 
     child.on("error", (error) => {
