@@ -36,15 +36,17 @@ function includesPattern(text: string, patterns: RegExp[]): boolean {
   return patterns.some((pattern) => pattern.test(text));
 }
 
-export function classifyRunFailure(run: RunResult, tailChars: number): MatMcpError {
+export function classifyRunFailure(run: RunResult, tailChars: number, timeoutSec?: number): MatMcpError {
   const stdoutTail = tail(run.stdout, tailChars);
   const stderrTail = tail(run.stderr, tailChars);
   const merged = `${stdoutTail}\n${stderrTail}`;
 
   if (run.timedOut) {
+    const durationStr = `${Math.round(run.durationMs / 1000)}s`;
+    const limitStr = timeoutSec !== undefined ? `, limit ${timeoutSec}s` : "";
     return new MatMcpError({
       category: "MAT_TIMEOUT",
-      message: `MAT process exceeded timeout (${Math.round(run.durationMs / 1000)}s).`,
+      message: `MAT process exceeded timeout (ran ${durationStr}${limitStr}).`,
       hint: "Increase timeout_sec or run a smaller report/query.",
       stdoutTail,
       stderrTail,
@@ -87,9 +89,21 @@ export function classifyRunFailure(run: RunResult, tailChars: number): MatMcpErr
 
 export function classifySpawnError(error: unknown): MatMcpError {
   const message = error instanceof Error ? error.message : String(error);
+  const code = error instanceof Error ? (error as NodeJS.ErrnoException).code : undefined;
+
+  if (code === "EACCES") {
+    return new MatMcpError({
+      category: "MAT_NOT_FOUND",
+      message: `Permission denied launching MAT process: ${message}`,
+      hint: "Ensure JAVA_PATH points to an executable file with proper permissions.",
+    });
+  }
+
   return new MatMcpError({
     category: "MAT_NOT_FOUND",
     message: `Failed to launch MAT process: ${message}`,
-    hint: "Verify JAVA_PATH and MAT_LAUNCHER are valid and executable.",
+    hint: code === "ENOENT"
+      ? "Java binary not found. Install Java or set JAVA_PATH to a valid java executable."
+      : "Verify JAVA_PATH and MAT_LAUNCHER are valid and executable.",
   });
 }

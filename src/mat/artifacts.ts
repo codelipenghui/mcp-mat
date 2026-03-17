@@ -51,9 +51,17 @@ function safeReadDir(directory: string): fs.Dirent[] {
 
 function latestByMtime(paths: string[]): string | null {
   if (paths.length === 0) return null;
-  return paths
-    .map((p) => ({ p, mtime: fs.statSync(p).mtimeMs }))
-    .sort((a, b) => b.mtime - a.mtime)[0].p;
+  const entries = paths
+    .map((p) => {
+      try {
+        return { p, mtime: fs.statSync(p).mtimeMs };
+      } catch {
+        return null;
+      }
+    })
+    .filter((entry): entry is { p: string; mtime: number } => entry !== null);
+  if (entries.length === 0) return null;
+  return entries.sort((a, b) => b.mtime - a.mtime)[0].p;
 }
 
 function isRecentEnough(fullPath: string, startedAtMs: number | undefined): boolean {
@@ -205,7 +213,12 @@ export function resolveIndexArtifacts(heapPath: string): IndexArtifacts {
       continue;
     }
 
-    const mtimeMs = fs.statSync(fullPath).mtimeMs;
+    let mtimeMs: number;
+    try {
+      mtimeMs = fs.statSync(fullPath).mtimeMs;
+    } catch {
+      continue;
+    }
     if (mtimeMs > lastModifiedMs) {
       lastModifiedMs = mtimeMs;
     }
