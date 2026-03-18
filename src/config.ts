@@ -114,7 +114,6 @@ export const ALLOWED_COMMANDS = [
 
 const envSchema = z
   .object({
-    MAT_ALLOWED_ROOTS: z.string().min(1),
     MAT_HOME: z.string().optional(),
     MAT_LAUNCHER: z.string().optional(),
     JAVA_PATH: z.string().optional(),
@@ -132,7 +131,6 @@ const envSchema = z
   .passthrough();
 
 export interface ServerConfig {
-  allowedRoots: string[];
   matHome?: string;
   matLauncher?: string;
   javaPath: string;
@@ -173,35 +171,9 @@ function parseBool(value: string | undefined, fallback: boolean): boolean {
   throw new Error(`Invalid boolean value: ${value}`);
 }
 
-function normalizeDirectory(inputPath: string, envName: string): string {
-  const absolute = path.resolve(inputPath);
-  if (!fs.existsSync(absolute)) {
-    throw new Error(`${envName} does not exist: ${absolute}`);
-  }
-  if (!fs.statSync(absolute).isDirectory()) {
-    throw new Error(`${envName} must be a directory: ${absolute}`);
-  }
-  return fs.realpathSync(absolute);
-}
-
-function parseAllowedRoots(rawRoots: string): string[] {
-  const parsedRoots = rawRoots
-    .split(",")
-    .map((item) => item.trim())
-    .filter((item) => item.length > 0)
-    .map((root) => normalizeDirectory(root, "MAT_ALLOWED_ROOTS"));
-
-  if (parsedRoots.length === 0) {
-    throw new Error("MAT_ALLOWED_ROOTS must contain at least one directory.");
-  }
-
-  return [...new Set(parsedRoots)];
-}
-
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   const parsed = envSchema.parse(env);
 
-  const allowedRoots = parseAllowedRoots(parsed.MAT_ALLOWED_ROOTS);
   const matConfigDir = path.resolve(parsed.MAT_CONFIG_DIR ?? path.join(os.tmpdir(), "mat-config"));
   const matDataDir = path.resolve(parsed.MAT_DATA_DIR ?? path.join(os.tmpdir(), "mat-workspace"));
   fs.mkdirSync(matConfigDir, { recursive: true });
@@ -224,7 +196,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
   }
 
   return {
-    allowedRoots,
     matHome,
     matLauncher,
     javaPath: parsed.JAVA_PATH?.trim() || "java",
