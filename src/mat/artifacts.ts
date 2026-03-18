@@ -189,7 +189,9 @@ export function resolveReportArtifacts(heapPath: string, startedAtMs?: number): 
 
 export function resolveIndexArtifacts(heapPath: string): IndexArtifacts {
   const parent = path.dirname(heapPath);
-  const heapName = path.basename(heapPath);
+  // MAT names index files using the heap stem (without extension):
+  //   heap.hprof -> heap.index, heap.idx.index, heap.threads, etc.
+  const heapStem = path.parse(heapPath).name;
 
   const indexFiles: string[] = [];
   let threadsFile: string | null = null;
@@ -201,8 +203,7 @@ export function resolveIndexArtifacts(heapPath: string): IndexArtifacts {
     }
 
     const fullPath = path.join(parent, entry.name);
-    const startsWithHeap = entry.name.startsWith(heapName);
-    if (!startsWithHeap) {
+    if (!entry.name.startsWith(heapStem)) {
       continue;
     }
 

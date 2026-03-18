@@ -33,7 +33,6 @@ function setupRuntime() {
   fs.writeFileSync(launcher, "jar");
 
   const config: ServerConfig = {
-    allowedRoots: [root],
     matLauncher: launcher,
     matHome: undefined,
     javaPath: "java",

@@ -21,7 +21,7 @@ import {
   persistDebugLog,
   type RequestContext,
 } from "../logging.js";
-import { ensureAllowedHeapPath, ensureWriteAccessNearHeap } from "../security/pathGuard.js";
+import { ensureValidHeapPath, ensureWriteAccessNearHeap } from "../security/pathGuard.js";
 import {
   MatMcpError,
   type MatHealthcheckSuccess,
@@ -106,7 +106,6 @@ export class MatService {
       const javaVersion = detectJavaVersion(input.java_path ?? this.config.javaPath);
 
       const notes = [
-        `allowed_roots=${this.config.allowedRoots.length}`,
         `debug_logging=${this.config.debug ? "enabled" : "disabled"}`,
       ];
 
@@ -133,7 +132,7 @@ export class MatService {
 
     try {
       const reportId = this.validateReportId(input.report_id);
-      const heapPath = ensureAllowedHeapPath(input.heap_path, this.config.allowedRoots);
+      const heapPath = ensureValidHeapPath(input.heap_path);
       ensureWriteAccessNearHeap(heapPath);
       const launcher = this.resolveLauncher();
 
@@ -193,7 +192,7 @@ export class MatService {
     logRequestStart(context);
 
     try {
-      const heapPath = ensureAllowedHeapPath(input.heap_path, this.config.allowedRoots);
+      const heapPath = ensureValidHeapPath(input.heap_path);
       ensureWriteAccessNearHeap(heapPath);
       const launcher = this.resolveLauncher();
 
@@ -270,7 +269,7 @@ export class MatService {
 
     try {
       const commandName = this.validateCommandName(input.command_name);
-      const heapPath = ensureAllowedHeapPath(input.heap_path, this.config.allowedRoots);
+      const heapPath = ensureValidHeapPath(input.heap_path);
       ensureWriteAccessNearHeap(heapPath);
       const launcher = this.resolveLauncher();
 
@@ -363,7 +362,7 @@ export class MatService {
     logRequestStart(context);
 
     try {
-      const heapPath = ensureAllowedHeapPath(input.heap_path, this.config.allowedRoots);
+      const heapPath = ensureValidHeapPath(input.heap_path);
       const artifacts = resolveIndexArtifacts(heapPath);
 
       const response: MatIndexStatusSuccess = {
@@ -434,7 +433,7 @@ export class MatService {
             hint: "Provide an absolute path for compare/baseline options.",
           });
         }
-        sanitized[key] = ensureAllowedHeapPath(value, this.config.allowedRoots);
+        sanitized[key] = ensureValidHeapPath(value);
         continue;
       }
 

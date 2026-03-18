@@ -66,11 +66,7 @@ Headless MCP server for Eclipse MAT using direct `java -jar org.eclipse.equinox.
 
 ## Environment
 
-Required:
-
-- `MAT_ALLOWED_ROOTS`: comma-separated absolute directories where heap files are allowed.
-
-Optional:
+All environment variables are optional:
 
 - `MAT_HOME`
 - `MAT_LAUNCHER`
@@ -91,7 +87,7 @@ Optional:
 ```bash
 npm install
 npm run build
-MAT_ALLOWED_ROOTS=/absolute/heap/dir MAT_HOME=/path/to/mat node dist/src/server.js
+MAT_HOME=/path/to/mat node dist/src/server.js
 ```
 
 ## Test
@@ -111,7 +107,6 @@ Add the MCP server to Claude Code settings (`~/.claude/settings.json` or project
       "command": "node",
       "args": ["/path/to/mcp-mat/dist/src/server.js"],
       "env": {
-        "MAT_ALLOWED_ROOTS": "/ABS/PATH/TO/HEAP_DUMPS",
         "MAT_HOME": "/Applications/MemoryAnalyzer.app/Contents/Eclipse"
       }
     }
@@ -133,7 +128,6 @@ Add MCP server to Codex:
 
 ```bash
 codex mcp add \
-  --env MAT_ALLOWED_ROOTS=/ABS/PATH/TO/HEAP_DUMPS \
   --env MAT_HOME=/Applications/MemoryAnalyzer.app/Contents/Eclipse \
   mat \
   node /path/to/mcp-mat/dist/src/server.js
@@ -161,6 +155,5 @@ command = "node"
 args = ["/path/to/mcp-mat/dist/src/server.js"]
 
 [mcp_servers.mat.env]
-MAT_ALLOWED_ROOTS = "/ABS/PATH/TO/HEAP_DUMPS"
 MAT_HOME = "/Applications/MemoryAnalyzer.app/Contents/Eclipse"
 ```
