@@ -16,12 +16,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { MatMcpError } from "../types.js";
 
-function isWithinRoot(candidate: string, root: string): boolean {
-  const relative = path.relative(root, candidate);
-  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
-}
-
-export function ensureAllowedHeapPath(heapPath: string, allowedRoots: string[]): string {
+export function ensureValidHeapPath(heapPath: string): string {
   const absoluteInput = path.resolve(heapPath);
 
   let canonical: string;
@@ -51,14 +46,6 @@ export function ensureAllowedHeapPath(heapPath: string, allowedRoots: string[]):
       category: "HEAP_NOT_FOUND",
       message: `Heap path is not readable: ${canonical}`,
       hint: "Grant read permission for the heap file and parent directory.",
-    });
-  }
-
-  if (!allowedRoots.some((root) => isWithinRoot(canonical, root))) {
-    throw new MatMcpError({
-      category: "HEAP_NOT_FOUND",
-      message: `Heap path is outside allowed roots: ${canonical}`,
-      hint: "Update MAT_ALLOWED_ROOTS to include this heap location.",
     });
   }
 
