@@ -96,7 +96,38 @@ MAT_HOME=/path/to/mat node dist/src/server.js
 npm test
 ```
 
-## Install in Claude Code
+## Install via npx
+
+No build step required. Install directly from npm:
+
+### Claude Code
+
+Add to `~/.claude/settings.json` or project `.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "mat": {
+      "command": "npx",
+      "args": ["-y", "mcp-mat"],
+      "env": {
+        "MAT_HOME": "/Applications/MemoryAnalyzer.app/Contents/Eclipse"
+      }
+    }
+  }
+}
+```
+
+### Codex
+
+```bash
+codex mcp add \
+  --env MAT_HOME=/Applications/MemoryAnalyzer.app/Contents/Eclipse \
+  mat \
+  npx -y mcp-mat
+```
+
+## Install in Claude Code (from source)
 
 Add the MCP server to Claude Code settings (`~/.claude/settings.json` or project `.claude/settings.json`):
 
@@ -114,7 +145,7 @@ Add the MCP server to Claude Code settings (`~/.claude/settings.json` or project
 }
 ```
 
-## Install in Codex
+## Install in Codex (from source)
 
 Build first:
 
