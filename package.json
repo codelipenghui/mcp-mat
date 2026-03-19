@@ -6,11 +6,32 @@
   "license": "Apache-2.0",
   "type": "module",
   "main": "dist/src/server.js",
+  "bin": {
+    "mcp-mat": "dist/src/server.js"
+  },
+  "files": [
+    "dist/src"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/codelipenghui/mcp-mat.git"
+  },
+  "keywords": [
+    "mcp",
+    "eclipse-mat",
+    "heap-dump",
+    "memory-analysis",
+    "java"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/server.ts",
     "start": "node dist/src/server.js",
-    "test": "tsx --test test/**/*.test.ts"
+    "test": "tsx --test test/**/*.test.ts",
+    "prepublishOnly": "npm run build && node scripts/prepublish.mjs"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.0",
