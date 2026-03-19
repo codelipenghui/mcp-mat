@@ -27,19 +27,26 @@ Add the following fields to `package.json`:
 - **`keywords`**: `["mcp", "eclipse-mat", "heap-dump", "memory-analysis", "java"]` — npm discoverability.
 - **`engines`**: `{ "node": ">=18" }` — the code uses ES2022 features and ESM.
 
-### 2. Shebang Handling
+### 2. Shebang Handling and Publish Checks
 
 TypeScript (`tsc`) does not emit shebangs. The `bin` entry requires `dist/src/server.js` to start with `#!/usr/bin/env node` for `npx` execution.
+
+Create `scripts/prepublish.mjs` — a standalone ESM script that:
+1. Verifies `version` in `package.json` matches `version` and `packages[0].version` in `server.json` (fails the publish if mismatched)
+2. Prepends `#!/usr/bin/env node\n` to `dist/src/server.js` if not already present
+
+Note: A standalone `.mjs` script is used instead of an inline `node -e` one-liner because the project uses `"type": "module"`, which means `require()` is not available in `node -e` context.
 
 Add a `prepublishOnly` script to `package.json`:
 
 ```
-"prepublishOnly": "npm run build && node -e \"const f='dist/src/server.js';const c=require('fs').readFileSync(f,'utf8');if(!c.startsWith('#!'))require('fs').writeFileSync(f,'#!/usr/bin/env node\\n'+c)\""
+"prepublishOnly": "npm run build && node scripts/prepublish.mjs"
 ```
 
 This runs automatically before `npm publish`, ensuring:
 1. The project is built fresh
-2. The shebang is prepended if not already present
+2. Versions are consistent between `package.json` and `server.json`
+3. The shebang is prepended if not already present
 
 ### 3. server.json for the MCP Registry
 
@@ -124,6 +131,7 @@ The existing "build from source" instructions remain for contributors/developers
 | File | Action | Description |
 |------|--------|-------------|
 | `package.json` | Modify | Add `mcpName`, `bin`, `files`, `repository`, `keywords`, `engines`, `prepublishOnly` script |
+| `scripts/prepublish.mjs` | Create | ESM script for shebang injection and version sync check |
 | `server.json` | Create | MCP Registry metadata |
 | `README.md` | Modify | Add npx installation instructions |
 
