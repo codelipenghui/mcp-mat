@@ -2,6 +2,7 @@
   "name": "mcp-mat",
   "version": "0.1.0",
   "description": "Headless Eclipse MAT MCP server",
+  "mcpName": "io.github.codelipenghui/mcp-mat",
   "license": "Apache-2.0",
   "type": "module",
   "main": "dist/src/server.js",
