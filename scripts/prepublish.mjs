@@ -13,13 +13,21 @@
 // limitations under the License.
 
 import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
 // 1. Version sync check
-const pkg = JSON.parse(fs.readFileSync("package.json", "utf8"));
-const server = JSON.parse(fs.readFileSync("server.json", "utf8"));
+const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+const server = JSON.parse(fs.readFileSync(path.join(ROOT, "server.json"), "utf8"));
 
 if (pkg.version !== server.version) {
   console.error(`Version mismatch: package.json (${pkg.version}) != server.json (${server.version})`);
+  process.exit(1);
+}
+if (!Array.isArray(server.packages) || server.packages.length === 0) {
+  console.error("server.json must have a non-empty 'packages' array");
   process.exit(1);
 }
 if (pkg.version !== server.packages[0].version) {
@@ -32,7 +40,7 @@ if (pkg.mcpName !== server.name) {
 }
 
 // 2. Shebang injection
-const serverJs = "dist/src/server.js";
+const serverJs = path.join(ROOT, "dist/src/server.js");
 const content = fs.readFileSync(serverJs, "utf8");
 if (!content.startsWith("#!")) {
   fs.writeFileSync(serverJs, "#!/usr/bin/env node\n" + content);
