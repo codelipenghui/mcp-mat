@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.codelipenghui/mcp-mat",
+  "description": "Headless Eclipse MAT MCP server for Java heap dump analysis",
+  "repository": {
+    "url": "https://github.com/codelipenghui/mcp-mat",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "mcp-mat",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MAT_HOME",
+          "description": "Path to Eclipse MAT installation directory (e.g., /Applications/MemoryAnalyzer.app/Contents/Eclipse)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "JAVA_PATH",
+          "description": "Path to Java executable (default: java)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "MAT_XMX_MB",
+          "description": "Maximum JVM heap size in MB for MAT (default: 4096)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
